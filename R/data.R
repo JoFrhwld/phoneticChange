@@ -1,7 +1,7 @@
 #' Basic Demographic Info from the PNC
 #'
 #'
-#' @format A data frame with 53940 rows and 10 variables:
+#' @format A data frame with 326 rows
 #' \describe{
 #'   \item{sex}{speaker sex}
 #'   \item{year}{year of interview}
@@ -14,3 +14,11 @@
 #' }
 #' @source Philadelphia Neighborhood Corpus
 "white"
+
+
+#' Rawest ays data
+#'
+#'
+#' @format A data frame with 84713 rows
+#' @source Philadelphia Neighborhood Corpus
+"ays"
