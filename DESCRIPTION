@@ -1,0 +1,14 @@
+Package: phoneticChange
+Title: What the package does (one line)
+Version: 0.1
+Authors@R: person("Josef", "Fruehwald",email = "josef.frueh@ed.ac.uk", role =
+    c("aut","cre"))
+Description: What the package does (one paragraph)
+Depends:
+    R (>= 3.1.1)
+License: MIT
+LazyData: true
+Imports:
+    plyr,
+    dplyr,
+    sqldf
