@@ -46,7 +46,7 @@ sql_load <- function(x, selection = "*", condition, file.format = list(header = 
 #' Load a vowel
 #' 
 #' @export
-#' @import plyr
+#' @importFrom plyr ldply
 
 load_vowels <- function(meas_files, condition = "where plt_vclass in ('ay','ay0')", ...){
      data <- ldply(meas_files, 

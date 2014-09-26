@@ -13,7 +13,8 @@ ays <- load_vowels(meas, condition = "where plt_vclass in ('ay','ay0')")
 ays <- ays %>%
           mutate(idstring = gsub("(PH[0-9]+-[0-9]+-[0-9]+-).*",
                           "\\1",
-                          File))%>%
+                          File),
+                 DOB = year-age)%>%
           select(-File)  
 
 nrow(ays)
@@ -31,10 +32,11 @@ ays %>%
     
 
 
-source("../anon/anon_ays.R")
+source("inst/anon/anon_ays.R")
 
 nrow(ays)
 
 system("afplay /System/Library/Sounds/Glass.aiff")
 
-#save(ays, file="data/ays.rda")
+save(ays, file="data/ays.rda")
+ %>% 

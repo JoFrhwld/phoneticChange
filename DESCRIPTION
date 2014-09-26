@@ -12,3 +12,6 @@ Imports:
     plyr,
     dplyr,
     sqldf
+Suggests:
+    knitr
+VignetteBuilder: knitr

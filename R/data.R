@@ -22,3 +22,10 @@
 #' @format A data frame with 84713 rows
 #' @source Philadelphia Neighborhood Corpus
 "ays"
+
+#' Means for mid and low vowels
+#'
+#'
+#' @format A data frame with 652 rows
+#' @source Philadelphia Neighborhood Corpus
+"mid_low_means"

@@ -1,58 +1,372 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "How Phonetic Change Happens"
+author: "Josef Fruehwald"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  revealjs::revealjs_presentation:
+    transition: linear
+    theme: simple
+    center: yes
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{How Phonetic Change Happens}
   %\VignetteEngine{knitr::rmarkdown}
   %\usepackage[utf8]{inputenc}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
-
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
-
-## Vignette Info
-
-Note the various macros within the `vignette` setion of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r setup, cache = F, include = F}
+  library(knitr)
+  opts_chunk$set(message = F,
+        	 echo = F,
+				 warning = F,
+				 autodep = T,
+         cache = T,
+				 fig.align = "center")
+  dep_auto()
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+```{r libraries, cache = F}
+  library(phoneticChange)
+  library(plyr)
+  library(dplyr)
+  library(magrittr)
+  library(ggplot2)
+  library(grid)
+  library(scales)
+  library(RColorBrewer)
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+  # for kurtosis
+  library(moments)
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+  # for gam smooths
+  library(mgcv)
 ```
 
-Also a quote using `>`:
+# Introduction
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+## The PNC
+
+```{r fig.width = 8/1.5, fig.height = 5/1.5, out.width="90%"}
+  ggplot(phoneticChange::white, aes(year, age, color = sex))+
+    geom_point(position = position_jitter(width = 0.4))+
+    theme_bw()
+```
+
+
+# /ay/ Raising
+
+## General pattern
+
+```{r calculate_ay_means}
+  ays_means <- ays %>%
+                filter(context=="internal", stress == 1) %>%
+                group_by(idstring, year, age, DOB, sex, years_of_schooling, 
+                         plt_vclass, word) %>%
+                summarise(F1_n = mean(F1_n)) %>%
+                summarise(F1_n = mean(F1_n))
+```
+
+```{r maxi_midlow_means}
+  all_midlow_means <- mid_low_means%>%
+                          group_by(plt_vclass)%>%
+                          summarise(F1_n = mean(F1_n))%>%
+                          mutate(label = c(uh="ʌ", o="\u0251")[plt_vclass])
+          
+
+```
+
+```{r minimal_brewer_pal}
+  three_col <- brewer.pal(3, "Dark2")
+```
+
+```{r fig.width = 8/1.25, fig.height = 5/1.25, out.width="90%", dev = 'CairoPNG'}
+  ays_means %>% 
+  ggplot(., aes(DOB, F1_n,
+                      color = plt_vclass)) +
+    #geom_point()+
+    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))+
+    scale_y_reverse("Normalized F1")+
+    geom_hline(data = all_midlow_means, aes(yintercept = F1_n), 
+               linetype = 3, color = "grey10")+
+    geom_text(data  = all_midlow_means, x= 1895, aes(y = F1_n-0.1, label = label),
+               color = "grey10")+
+    scale_color_brewer("Vowel Category", palette = "Dark2")+
+    xlab("Date of Birth")+
+    theme_bw()
+```
+
+
+## What does it Mean
+
+### Population Shift?
+
+```{r}
+  t1_pop <- data.frame(DOB = 1890, F1_n = rep(1.35,50), pos = "low")
+  t2_pop <- data.frame(DOB = 1920, F1_n = c(rep(1.35,45), rep(0.35,5)),
+                       pos =  c(rep("low",45), rep("high",5)))
+  t3_pop <- data.frame(DOB = 1950, F1_n = c(rep(1.35,5), rep(0.35,45)),
+                       pos =  c(rep("low",5), rep("high",45)))
+  t4_pop <- data.frame(DOB = 1980, F1_n = c(rep(1.35,0), rep(0.35,50)),
+                       pos =  c(rep("low",0), rep("high",50)))
+
+
+  t_pop <- rbind_all(list(t1_pop, t2_pop, t3_pop, t4_pop))
+
+```
+
+
+```{r population, fig.width = 8/1.25, fig.height = 5/1.25, out.width="90%"}
+  ays_means %>% 
+    filter(plt_vclass == "ay0")%>%
+  ggplot(., aes(DOB, F1_n)) +
+    geom_point(data = t_pop, aes(color = pos), position = position_jitter(width = 2, height = 0.1))+
+    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))+
+    scale_y_reverse("Normalized F1")+
+    scale_color_brewer("Speakers", palette = "Dark2", limits = c("low", "high"))+
+    xlab("Date of Birth")+
+    theme_bw()
+```
+
+## What would it look like?
+### Population Shift
+
+>- Speakers are not internally variable. You are either a raising speaker, or a non-raising speaker.
+>- The speech community is highly variable. 
+
+## What does it mean?
+### Lexicon
+
+```{r fifty_random_words}
+
+  set.seed(5)
+  ays %>%
+    filter(plt_vclass == "ay0")%>%
+    group_by(word)%>%
+    summarise(n = n())%>%
+    ungroup()%>%
+    mutate(rand = rnorm(n()))%>%
+    arrange(rand)%>%
+    head(50)%>%
+    mutate(word = tolower(word))%>%
+    select(word)-> rand_fifty
+```
+
+```{r t_lexicon}
+  t1_lex <- rand_fifty%>%
+              mutate(DOB = 1890, F1_n =  rep(1.35,50), pos = "low")
+              
+  t2_lex <- rand_fifty%>%
+              mutate(DOB = 1920, 
+                     F1_n = c(rep(1.35,45), rep(0.35,5)),
+                     pos =  c(rep("low",45), rep("high",5)))
+
+  t3_lex <- rand_fifty%>%
+              mutate(DOB = 1950, 
+                     F1_n = c(rep(1.35,5), rep(0.35,45)),
+                     pos =  c(rep("low",5), rep("high",45)))
+
+  t4_lex <- rand_fifty%>%
+              mutate(DOB = 1980, 
+                     F1_n = c(rep(1.35,0), rep(0.35,50)),
+                     pos =  c(rep("low",0), rep("high",50)))
+
+  t_lex <- rbind_all(list(t1_lex, t2_lex, t3_lex, t4_lex))
+```
+
+```{r lexicon, fig.width = 8/1.25, fig.height = 5/1.25, out.width="90%"}
+  ays_means %>% 
+    filter(plt_vclass == "ay0")%>%
+  ggplot(., aes(DOB, F1_n)) +
+    geom_text(data = t_lex, 
+              aes(color = pos, label = word), 
+              position = position_jitter(width = 2, height = 0.1),
+              size= 3)+
+    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))+
+    scale_y_reverse("Normalized F1")+
+    scale_color_brewer("Lexicon", palette = "Dark2", limits = c("low", "high"))+
+    xlab("Date of Birth")+
+    theme_bw()
+```
+
+## What would it look like?
+### Lexicon
+
+>- Speakers are internally variable. Sometimes they'll say a raising word, and other times they'll say a non-raising word.
+>- The speech communuty isn't very variable. Speakers should be more or less similar to eachother.
+
+## What does it mean?
+### Variable Rule
+
+>- /ay/ = [+low]
+>- with probability $p$, ay $\rightarrow$ [-low]/__[-voice]
+    - beginning of the change, $p=0$
+    - middle of the change, $p=0.5$
+    - end of the change, $p=1$
+    
+    
+## What does it mean?
+### Variable Rule
+
+```{r t_phon}
+  t1_phon <- data.frame(DOB = 1890, F1_n = rep(1.35,50), pos = "[+low]")
+  t2_phon <- data.frame(DOB = 1920, 
+                        F1_n = c(rep(1.35,45), rep(0.35,5)),
+                        pos =  c(rep("[+low]",45), rep("[-low]",5)))
+  t3_phon <- data.frame(DOB = 1950, F1_n = c(rep(1.35,5), rep(0.35,45)),
+                       pos =  c(rep("[+low]",5), rep("[-low]",45)))
+  t4_phon <- data.frame(DOB = 1980, F1_n = c(rep(1.35,0), rep(0.35,50)),
+                       pos =  c(rep("[+low]",0), rep("[-low]",50)))
+
+
+  t_phon <- rbind_all(list(t1_phon, t2_phon, t3_phon, t4_phon))
+```
+
+
+```{r phon_var, fig.width = 8/1.25, fig.height = 5/1.25, out.width="90%"}
+  ays_means %>% 
+    filter(plt_vclass == "ay0")%>%
+  ggplot(., aes(DOB, F1_n)) +
+    geom_text(data = t_phon, 
+              aes(color = pos, label = pos), 
+              position = position_jitter(width = 2, height = 0.1),
+              size= 3)+
+    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))+
+    scale_y_reverse("Normalized F1")+
+    scale_color_brewer("Feature", palette = "Dark2", limits = c("[+low]", "[-low]"))+
+    xlab("Date of Birth")+
+    theme_bw()
+```
+
+## What would it look like?
+### Variable Rule
+
+>- Speakers would be internally variable, alternatively raising and not raising /ay/ with some internally consistant probability.
+>- The speech communuty wouldn't be very variable. There would be some characteristic probability of raising for birth cohorts & social strata.
+
+## What does it mean?
+### Continuous Change
+
+```{r setup_gam}
+  ays_means %>% filter(plt_vclass == "ay0")%>%
+    gam(F1_n ~ s(DOB, bs = "cs"), data = .)->gam_mod
+
+
+  pred <- data.frame(DOB = rep(seq(1890, 1998, length = 10), 50))
+  pred$F1_n <- predict(gam_mod, newdata = pred)
+
+```
+
+```{r continuous, fig.width = 8/1.25, fig.height = 5/1.25, out.width="90%"}
+  ays_means %>% 
+    filter(plt_vclass == "ay0")%>%
+  ggplot(., aes(DOB, F1_n)) +
+    geom_point(data = pred, 
+              aes(color = F1_n), 
+              position = position_jitter(width = 2, height = 0.1))+
+    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))+
+    scale_y_reverse("Normalized F1")+
+    scale_color_gradient("Phonetic Target", high = three_col[1], low = three_col[2])+
+    xlab("Date of Birth")+
+    theme_bw()
+```
+
+
+## What would it look like?
+### Continuous Change
+
+>- Speakers wouldn't be very variable aside from the intrinsicw variation involved in trying to hit a real-valued target.
+>- The speech community wouldn't very variable. There would be some characteristic pronunciation target for birth cohorts & social strata.
+
+# What it does look like.
+
+## Trend with speaker means
+
+```{r trend_with_means, fig.width = 8/1.25, fig.height=5/1.25, out.width="90%"}
+  ays_means %>% 
+  ggplot(., aes(DOB, F1_n, color = plt_vclass)) +
+    geom_point()+
+    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))+
+    scale_y_reverse("Normalized F1")+
+    scale_color_brewer("Vowel Class", palette = "Dark2")+
+    xlab("Date of Birth")+
+    theme_bw()
+```
+
+## Cohen's D
+
+```{r}
+  ays %>%
+    filter(context == "internal")%>%
+    group_by(idstring, DOB, plt_vclass)%>%
+    summarise(mean = mean(F1_n), var = var(F1_n), n = n())%>%
+    filter(n()==2)%>%
+    arrange(plt_vclass)%>%
+    summarise(s = sqrt(sum((n-1)*var)/(sum(n)-2)),
+              diff = diff(mean))%>%
+    mutate(d = diff/s)->ay_cohen
+
+```
+
+```{r cohen_plot, fig.width = 8/1.25, fig.height=5/1.25, out.width="90%"}
+  ggplot(ay_cohen, aes(DOB, d))+
+    geom_hline(y = 0)+
+    geom_point()+
+    stat_smooth(method = gam, formula = y ~ s(x, bs = "cs"))+
+    scale_y_reverse("Cohen's d")+
+    xlab("Date of Birth")+
+    theme_bw()
+
+```
+
+
+## What it means
+
+>- We can rule out the population shift model. 
+>- The lexicon shift model, and the variable rule models can't be ruled out yet.
+    - If speakers were sampling from two distributions, or two lexicons, their *means* would still shift continuously.
+    
+## Distributional Properties
+
+- Both the kurtosis and the standard deviation of a mixture distribution *should* systematically co-vary with the mean.
+```{r, echo = T, eval=F}
+  runApp(system.file("appdir/mixdists", package="phoneticChange"))
+```
+
+
+## Distributional Properties
+
+```{r}
+  ays %>%
+    filter(plt_vclass == "ay0", context == "internal")%>%
+    group_by(idstring, DOB)%>%
+    filter(n()>20)%>%
+    summarise(F1_mean = mean(F1_n),
+              F1_sd = sd(F1_n),
+              F1_kurtosis = kurtosis(F1_n))->ays_dist_info
+```
+
+```{r}
+  ggplot(ays_dist_info, aes(F1_mean, F1_sd))+
+    geom_hline(y = median(ays_dist_info$F1_sd), linetype = 2)+
+    geom_point()+
+    stat_smooth(method = gam, formula = y ~ s(x, bs = "cs"))+
+    scale_y_continuous(trans = "log2")+
+    theme_bw()
+```
+
+
+## Distributional Properties
+
+
+```{r}
+  ggplot(ays_dist_info, aes(F1_mean, F1_kurtosis))+
+    geom_hline(y = 3, linetype = 2)+
+    geom_point()+
+    stat_smooth(method = gam, formula = y ~ s(x, bs = "cs"))+
+    scale_y_continuous(trans = "log2")+
+    theme_bw()
+```
+
+
+
+
+
