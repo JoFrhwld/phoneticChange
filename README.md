@@ -1,8 +1,9 @@
 # To Get the Talk
 
-    install.packages("devtools")
+    install.packages(c("devtools", "knitr"))
     library(devtools)
-    install_github("jofrhwld/phoneticChange")
+    install_github("jjallaire/revealjs")
+    install_github("jofrhwld/phoneticChange", build_vignettes = T)
     library(phoneticChange)
     vignette("talk")
     

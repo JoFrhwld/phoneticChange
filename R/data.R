@@ -29,3 +29,37 @@
 #' @format A data frame with 652 rows
 #' @source Philadelphia Neighborhood Corpus
 "mid_low_means"
+
+
+#' Simulation
+#' A simulation of categorical phonetic change
+#' @source see \code{system.file(run_sim/run_sim.R, package = "phoneticChangne")}
+"simulation"
+
+
+#' All Vowel Means
+#'
+#' Vowel means from the PNC
+#' @source Philadelphia Neighborhood Corpus
+"all_means"
+
+#' /ay/ before faithful /t/, /d/
+#'
+#' @source The Philadelphia Neighborhood Corpus
+"ays_faith"
+
+
+#' /ay/ before flapped /t/, /d/
+#'
+#' @source The Philadelphia Neighborhood Corpus
+"ays_flap"
+
+
+#' full flap tracks
+#'
+#' @source The Philadelphia Neighborhood Corpus
+"flap_tracks"
+
+#' Stan model summary
+"ar1_summary_df"
+

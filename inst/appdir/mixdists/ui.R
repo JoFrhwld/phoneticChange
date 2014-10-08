@@ -1,11 +1,11 @@
 library("ggvis")
 shinyUI(pageWithSidebar(
-  div(),
+  headerPanel("Distribution Mixture Illustration"),
   sidebarPanel(
-    sliderInput(inputId = "mixture", 
-                label = "mixture", 
-                min = 0, 
-                max = 1, 
+    sliderInput(inputId = "mixture",
+                label = "mixture",
+                min = 0,
+                max = 1,
                 step = 0.1,
                 value = 0,
                 animate = animationOptions(interval = 2000))
@@ -13,7 +13,7 @@ shinyUI(pageWithSidebar(
   mainPanel(
     uiOutput("ggvis_ui"),
     ggvisOutput("ggvis"),
-    tableOutput("info")
+    verbatimTextOutput("info")
   )
 ))
 
