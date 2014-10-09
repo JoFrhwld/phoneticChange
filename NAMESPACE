@@ -3,6 +3,7 @@
 export(change_sim)
 export(extract_from_summary)
 export(load_demographics)
+export(load_install)
 export(load_vowels)
 export(meas_files)
 export(sql_load)

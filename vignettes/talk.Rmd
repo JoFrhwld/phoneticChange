@@ -26,20 +26,21 @@ vignette: >
 
 ```{r libraries, cache = F}
   library(phoneticChange)
-  library(plyr)
-  library(reshape2)
-  library(dplyr)
-  library(magrittr)
-  library(ggplot2)
-  library(grid)
-  library(scales)
-  library(RColorBrewer)
+
+  load_install("plyr")
+  load_install("reshape2")
+  load_install("dplyr")
+  load_install("magrittr")
+  load_install("ggplot2")
+  load_install("grid")
+  load_install("scales")
+  load_install("RColorBrewer")
 
   # for kurtosis
-  library(moments)
+  load_install("moments")
 
   # for gam smooths
-  library(mgcv)
+  load_install("mgcv")
 ```
 
 # Introduction
@@ -926,7 +927,7 @@ The difference between /t/ and /d/ is largely neutralized in certain contexts.
 
 ## Non-linear Bayesian Modelling
 
-```{r fig.width = 103/1.25, fig.height = 5/1.25, out.width = "90%"}
+```{r fig.width = 10/1.25, fig.height = 5/1.25, out.width = "90%"}
   dob_mu <- extract_from_summary(ar1_summary_df, "dob_mu")
   dob_mu <- dob_mu %>%
                   mutate(context2 = c("D_faithful","D_flap", "T_faithful", "T_flap")[V1])
