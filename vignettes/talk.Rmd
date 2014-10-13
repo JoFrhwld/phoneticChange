@@ -304,10 +304,10 @@ runApp(system.file("appdir/means", package="phoneticChange"))
   ays_means %>% 
     filter(plt_vclass == "ay0")%>%
   ggplot(., aes(DOB, F1_n)) +
+    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))+
     geom_point(data = pred, 
               aes(color = F1_n), 
               position = position_jitter(width = 2, height = 0.1))+
-    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))+
     scale_y_reverse("Normalized F1")+
     scale_color_gradient("Phonetic Target", high = three_col[1], low = three_col[2])+
     xlab("Date of Birth")+
